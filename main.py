@@ -118,6 +118,7 @@ class MainWindow(QMainWindow):
             # Crear el widget de detalles de automatización
             self.automation_details_widget = AutomationDetailsWidget()
             self.automation_details_widget.executeRequested.connect(self.on_automation_execute_requested)
+            self.automation_details_widget.executeAsyncRequested.connect(self.on_automation_execute_async_requested)
             
             # Reemplazar el contenido de la página de widgets
             # Limpiar el layout existente de la página de widgets
@@ -221,6 +222,45 @@ class MainWindow(QMainWindow):
             result_text = f"❌ Error ejecutando automatización\n\n{output}"
         
         self.automation_details_widget.set_output(result_text)
+
+    def on_automation_execute_async_requested(self, inputs):
+        """
+        Maneja la solicitud de ejecución asíncrona desde el widget de automatización
+        """
+        current = self.automation_manager.get_current_automation()
+        if not current:
+            print("⚠️  No hay automatización seleccionada")
+            return
+        
+        print(f"🚀 Ejecutando automatización en paralelo: {current['name']}")
+        print(f"📊 Inputs: {inputs}")
+        
+        # Callback para cuando termine la ejecución
+        def on_execution_complete(success, output, execution_id):
+            # Actualizar la salida en el widget
+            if success:
+                result_text = f"✅ Ejecución {execution_id} completada exitosamente\n\n{output}"
+            else:
+                result_text = f"❌ Error en ejecución {execution_id}\n\n{output}"
+            
+            self.automation_details_widget.append_output(f"\n--- Resultado {execution_id} ---")
+            self.automation_details_widget.append_output(result_text)
+            self.automation_details_widget.remove_execution(execution_id)
+        
+        # Ejecutar la automatización en paralelo
+        execution_id = self.automation_manager.execute_automation_async(
+            current['id'], 
+            inputs, 
+            callback=on_execution_complete
+        )
+        
+        # Agregar al tracking del widget
+        execution_info = {
+            'automation_name': current['name'],
+            'execution_id': execution_id,
+            'status': 'running'
+        }
+        self.automation_details_widget.add_execution(execution_id, execution_info)
 
     def open_file_dialog(self, input_config):
         """

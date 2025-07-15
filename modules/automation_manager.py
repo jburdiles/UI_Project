@@ -7,6 +7,8 @@ import os
 import json
 import subprocess
 import sys
+import threading
+import uuid
 from pathlib import Path
 from typing import List, Dict, Optional
 
@@ -21,6 +23,7 @@ class AutomationManager:
         self.automations_folder = automations_folder
         self.automations = []
         self.current_automation = None
+        self.running_executions = {}  # {execution_id: thread_info}
         self.load_automations()
     
     def load_automations(self) -> List[Dict]:
@@ -203,6 +206,89 @@ class AutomationManager:
         
         return True, "Ruta válida"
     
+    def execute_automation_async(self, automation_id: str, inputs: Dict[str, str], callback=None) -> str:
+        """
+        Ejecuta una automatización de forma asíncrona (en paralelo)
+        
+        Args:
+            automation_id: ID de la automatización a ejecutar
+            inputs: Diccionario con los valores de entrada
+            callback: Función a llamar cuando termine (success, output, execution_id)
+            
+        Returns:
+            execution_id: ID único de la ejecución para trackear
+        """
+        execution_id = str(uuid.uuid4())[:8]  # ID corto único
+        
+        automation = self.get_automation_by_id(automation_id)
+        if not automation:
+            if callback:
+                callback(False, f"Automatización {automation_id} no encontrada", execution_id)
+            return execution_id
+        
+        # Crear información de tracking
+        execution_info = {
+            "id": execution_id,
+            "automation_id": automation_id,
+            "automation_name": automation["name"],
+            "status": "running",
+            "thread": None,
+            "start_time": None
+        }
+        
+        # Función que se ejecutará en el thread
+        def run_automation():
+            import time
+            execution_info["start_time"] = time.time()
+            self.running_executions[execution_id] = execution_info
+            
+            try:
+                success, output = self.execute_automation(automation_id, inputs)
+                execution_info["status"] = "completed" if success else "failed"
+                
+                if callback:
+                    callback(success, output, execution_id)
+                    
+            except Exception as e:
+                execution_info["status"] = "error"
+                if callback:
+                    callback(False, f"Error inesperado: {str(e)}", execution_id)
+            finally:
+                # Limpiar después de un tiempo
+                threading.Timer(60, lambda: self.running_executions.pop(execution_id, None)).start()
+        
+        # Crear y ejecutar thread
+        thread = threading.Thread(target=run_automation, daemon=True)
+        execution_info["thread"] = thread
+        
+        thread.start()
+        print(f"🚀 Ejecutando '{automation['name']}' en paralelo (ID: {execution_id})")
+        
+        return execution_id
+    
+    def get_running_executions(self) -> Dict:
+        """
+        Retorna información de las ejecuciones actualmente corriendo
+        """
+        return self.running_executions.copy()
+    
+    def cancel_execution(self, execution_id: str) -> bool:
+        """
+        Intenta cancelar una ejecución (limitado por subprocess)
+        
+        Args:
+            execution_id: ID de la ejecución a cancelar
+            
+        Returns:
+            True si se encontró la ejecución para cancelar
+        """
+        if execution_id in self.running_executions:
+            execution_info = self.running_executions[execution_id]
+            execution_info["status"] = "cancelled"
+            print(f"⏹️ Solicitada cancelación de ejecución {execution_id}")
+            return True
+        return False
+
     def reload_automations(self):
         """
         Recarga las automatizaciones desde el disco

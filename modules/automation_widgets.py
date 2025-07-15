@@ -3,7 +3,7 @@ Automation Widgets
 Widgets personalizados para la interfaz de automatizaciones
 """
 
-from PySide6.QtCore import Qt, Signal
+from PySide6.QtCore import Qt, Signal, QTimer
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, 
     QLineEdit, QFrame, QScrollArea, QTextEdit, QSizePolicy,
@@ -48,7 +48,7 @@ class AutomationInputWidget(QFrame):
             QLabel {
                 color: rgb(255, 255, 255);
                 font-weight: bold;
-                font-size: 12px;
+                font-size: 14px;
                 border: none;
                 background: transparent;
             }
@@ -69,7 +69,7 @@ class AutomationInputWidget(QFrame):
                 border-radius: 3px;
                 padding: 8px;
                 color: rgb(221, 221, 221);
-                font-size: 11px;
+                font-size: 13px;
             }
             QLineEdit:focus {
                 border: 2px solid rgb(255, 121, 198);
@@ -84,10 +84,10 @@ class AutomationInputWidget(QFrame):
                 background-color: rgb(255, 121, 198);
                 border: none;
                 border-radius: 3px;
-                padding: 8px 12px;
+                padding: 10px 15px;
                 color: rgb(255, 255, 255);
                 font-weight: bold;
-                font-size: 11px;
+                font-size: 13px;
             }
             QPushButton:hover {
                 background-color: rgb(255, 131, 208);
@@ -110,7 +110,7 @@ class AutomationInputWidget(QFrame):
         info_label.setStyleSheet("""
             QLabel {
                 color: rgb(150, 150, 150);
-                font-size: 10px;
+                font-size: 12px;
                 border: none;
                 background: transparent;
             }
@@ -160,12 +160,19 @@ class AutomationDetailsWidget(QWidget):
     """Widget principal para mostrar detalles de una automatización"""
     
     executeRequested = Signal(dict)  # inputs dict
+    executeAsyncRequested = Signal(dict)  # inputs dict para ejecución async
     
     def __init__(self, parent=None):
         super().__init__(parent)
         self.current_automation = None
         self.input_widgets = {}
+        self.running_executions = {}
         self.setup_ui()
+        
+        # Timer para actualizar estado de ejecuciones
+        self.update_timer = QTimer()
+        self.update_timer.timeout.connect(self.update_execution_status)
+        self.update_timer.start(1000)  # Actualizar cada segundo
     
     def setup_ui(self):
         """Configura la interfaz principal"""
@@ -202,9 +209,9 @@ class AutomationDetailsWidget(QWidget):
         self.title_label.setStyleSheet("""
             QLabel {
                 color: rgb(255, 255, 255);
-                font-size: 18px;
+                font-size: 22px;
                 font-weight: bold;
-                padding: 10px;
+                padding: 12px;
                 background-color: rgb(44, 49, 58);
                 border-radius: 5px;
             }
@@ -217,11 +224,11 @@ class AutomationDetailsWidget(QWidget):
         self.description_label.setStyleSheet("""
             QLabel {
                 color: rgb(200, 200, 200);
-                font-size: 12px;
-                padding: 10px;
+                font-size: 14px;
+                padding: 12px;
                 background-color: rgb(33, 37, 43);
                 border-radius: 5px;
-                line-height: 1.4;
+                line-height: 1.5;
             }
         """)
         self.content_layout.addWidget(self.description_label)
@@ -252,10 +259,10 @@ class AutomationDetailsWidget(QWidget):
                 background-color: rgb(80, 150, 255);
                 border: none;
                 border-radius: 5px;
-                padding: 12px 20px;
+                padding: 15px 25px;
                 color: rgb(255, 255, 255);
                 font-weight: bold;
-                font-size: 12px;
+                font-size: 14px;
             }
             QPushButton:hover {
                 background-color: rgb(90, 160, 255);
@@ -267,17 +274,17 @@ class AutomationDetailsWidget(QWidget):
         self.validate_btn.clicked.connect(self.validate_inputs)
         buttons_layout.addWidget(self.validate_btn)
         
-        # Botón de ejecutar
-        self.execute_btn = QPushButton("Ejecutar Automatización")
+        # Botón de ejecutar (síncrono)
+        self.execute_btn = QPushButton("Ejecutar")
         self.execute_btn.setStyleSheet("""
             QPushButton {
                 background-color: rgb(80, 250, 123);
                 border: none;
                 border-radius: 5px;
-                padding: 12px 20px;
+                padding: 15px 25px;
                 color: rgb(0, 0, 0);
                 font-weight: bold;
-                font-size: 12px;
+                font-size: 14px;
             }
             QPushButton:hover {
                 background-color: rgb(90, 255, 133);
@@ -293,11 +300,51 @@ class AutomationDetailsWidget(QWidget):
         self.execute_btn.clicked.connect(self.execute_automation)
         buttons_layout.addWidget(self.execute_btn)
         
+        # Botón de ejecutar en paralelo
+        self.execute_async_btn = QPushButton("Ejecutar en Paralelo")
+        self.execute_async_btn.setStyleSheet("""
+            QPushButton {
+                background-color: rgb(139, 69, 255);
+                border: none;
+                border-radius: 5px;
+                padding: 15px 25px;
+                color: rgb(255, 255, 255);
+                font-weight: bold;
+                font-size: 14px;
+            }
+            QPushButton:hover {
+                background-color: rgb(149, 79, 255);
+            }
+            QPushButton:pressed {
+                background-color: rgb(129, 59, 245);
+            }
+            QPushButton:disabled {
+                background-color: rgb(60, 65, 75);
+                color: rgb(150, 150, 150);
+            }
+        """)
+        self.execute_async_btn.clicked.connect(self.execute_automation_async)
+        buttons_layout.addWidget(self.execute_async_btn)
+        
         self.content_layout.addLayout(buttons_layout)
+        
+        # Indicador de ejecuciones activas
+        self.execution_status_label = QLabel("Ejecuciones activas: 0")
+        self.execution_status_label.setStyleSheet("""
+            QLabel {
+                color: rgb(150, 150, 150);
+                font-size: 12px;
+                padding: 5px;
+                background-color: rgb(44, 49, 58);
+                border-radius: 3px;
+            }
+        """)
+        self.content_layout.addWidget(self.execution_status_label)
         
         # Inicialmente deshabilitar botones
         self.validate_btn.setEnabled(False)
         self.execute_btn.setEnabled(False)
+        self.execute_async_btn.setEnabled(False)
     
     def create_output_area(self):
         """Crea el área de salida para logs"""
@@ -305,9 +352,9 @@ class AutomationDetailsWidget(QWidget):
         output_label.setStyleSheet("""
             QLabel {
                 color: rgb(255, 255, 255);
-                font-size: 14px;
+                font-size: 16px;
                 font-weight: bold;
-                padding: 5px;
+                padding: 8px;
             }
         """)
         self.content_layout.addWidget(output_label)
@@ -320,10 +367,10 @@ class AutomationDetailsWidget(QWidget):
                 background-color: rgb(20, 22, 26);
                 border: 1px solid rgb(60, 65, 75);
                 border-radius: 5px;
-                padding: 10px;
+                padding: 12px;
                 color: rgb(255, 255, 255);
                 font-family: 'Consolas', 'Monaco', monospace;
-                font-size: 11px;
+                font-size: 13px;
             }
         """)
         self.content_layout.addWidget(self.output_text)
@@ -343,6 +390,7 @@ class AutomationDetailsWidget(QWidget):
         # Habilitar botones
         self.validate_btn.setEnabled(True)
         self.execute_btn.setEnabled(True)
+        self.execute_async_btn.setEnabled(True)
         
         # Limpiar salida
         self.output_text.clear()
@@ -354,9 +402,9 @@ class AutomationDetailsWidget(QWidget):
             inputs_label.setStyleSheet("""
                 QLabel {
                     color: rgb(255, 255, 255);
-                    font-size: 14px;
+                    font-size: 16px;
                     font-weight: bold;
-                    padding: 5px;
+                    padding: 8px;
                 }
             """)
             self.inputs_layout.addWidget(inputs_label)
@@ -424,8 +472,71 @@ class AutomationDetailsWidget(QWidget):
             self.validate_inputs()
             return
         
-        self.output_text.setPlainText("🚀 Ejecutando automatización...\n")
+        self.output_text.setPlainText("Ejecutando automatización...\n")
         self.executeRequested.emit(inputs)
+    
+    def execute_automation_async(self):
+        """Ejecuta la automatización en paralelo"""
+        if not self.current_automation:
+            return
+        
+        # Recolectar inputs
+        inputs = {}
+        for input_id, input_widget in self.input_widgets.items():
+            path = input_widget.get_path()
+            if path:
+                inputs[input_id] = path
+        
+        # Validar antes de ejecutar
+        valid = True
+        for input_widget in self.input_widgets.values():
+            if not input_widget.is_valid():
+                valid = False
+                break
+        
+        if not valid:
+            self.validate_inputs()
+            return
+        
+        self.append_output("Iniciando ejecución en paralelo...")
+        self.executeAsyncRequested.emit(inputs)
+    
+    def update_execution_status(self):
+        """Actualiza el estado de las ejecuciones activas"""
+        count = len(self.running_executions)
+        if count > 0:
+            names = [info.get('automation_name', 'Sin nombre') for info in self.running_executions.values()]
+            status_text = f"Ejecuciones activas: {count} ({', '.join(names[:2])}{'...' if len(names) > 2 else ''})"
+            self.execution_status_label.setStyleSheet("""
+                QLabel {
+                    color: rgb(80, 250, 123);
+                    font-size: 12px;
+                    padding: 5px;
+                    background-color: rgb(44, 49, 58);
+                    border-radius: 3px;
+                }
+            """)
+        else:
+            status_text = "Ejecuciones activas: 0"
+            self.execution_status_label.setStyleSheet("""
+                QLabel {
+                    color: rgb(150, 150, 150);
+                    font-size: 12px;
+                    padding: 5px;
+                    background-color: rgb(44, 49, 58);
+                    border-radius: 3px;
+                }
+            """)
+        
+        self.execution_status_label.setText(status_text)
+    
+    def add_execution(self, execution_id, execution_info):
+        """Agrega una ejecución al tracking"""
+        self.running_executions[execution_id] = execution_info
+    
+    def remove_execution(self, execution_id):
+        """Remueve una ejecución del tracking"""
+        self.running_executions.pop(execution_id, None)
     
     def append_output(self, text):
         """Agrega texto al área de salida"""
