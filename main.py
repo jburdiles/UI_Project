@@ -1,16 +1,7 @@
 # ///////////////////////////////////////////////////////////////
 #
-# BY: WANDERSON M.PIMENTA
-# PROJECT MADE WITH: Qt Designer and PySide6
-# V: 1.0.0
-#
-# This project can be used freely for all uses, as long as they maintain the
-# respective credits only in the Python scripts, any information in the visual
-# interface (GUI) can be modified without any implication.
-#
-# There are limitations on Qt licenses if you want to use your products
-# commercially, I recommend reading them on the official website:
-# https://doc.qt.io/qtforpython/licenses.html
+# AuroreUI - Python Automation Runner
+# Modern GUI for executing Python automations
 #
 # ///////////////////////////////////////////////////////////////
 
@@ -39,14 +30,23 @@ class MainWindow(QMainWindow):
         global widgets
         widgets = self.ui
 
+        # INITIALIZE AUTOMATION MANAGER
+        # ///////////////////////////////////////////////////////////////
+        self.automation_manager = AutomationManager()
+        self.current_inputs = {}  # Store current automation inputs
+        
+        # SETUP AUTOMATION WIDGETS
+        # ///////////////////////////////////////////////////////////////
+        self.setup_automation_widgets()
+
         # USE CUSTOM TITLE BAR | USE AS "False" FOR MAC OR LINUX
         # ///////////////////////////////////////////////////////////////
         Settings.ENABLE_CUSTOM_TITLE_BAR = True
 
         # APP NAME
         # ///////////////////////////////////////////////////////////////
-        title = "PyDracula - Modern GUI"
-        description = "PyDracula APP - Theme with colors based on Dracula for Python."
+        title = "AuroreUI"
+        description = ""
         # APPLY TEXTS
         self.setWindowTitle(title)
         widgets.titleRightInfo.setText(description)
@@ -66,22 +66,21 @@ class MainWindow(QMainWindow):
         # BUTTONS CLICK
         # ///////////////////////////////////////////////////////////////
 
-        # LEFT MENUS
-        widgets.btn_home.clicked.connect(self.buttonClick)
+        # LEFT MENUS  
         widgets.btn_widgets.clicked.connect(self.buttonClick)
         widgets.btn_new.clicked.connect(self.buttonClick)
         widgets.btn_save.clicked.connect(self.buttonClick)
+        
+        # HIDE HOME BUTTON
+        widgets.btn_home.hide()
 
-        # EXTRA LEFT BOX
-        def openCloseLeftBox():
-            UIFunctions.toggleLeftBox(self, True)
-        widgets.toggleLeftBox.clicked.connect(openCloseLeftBox)
-        widgets.extraCloseColumnBtn.clicked.connect(openCloseLeftBox)
+        # SETUP AUTOMATION BUTTONS
+        # ///////////////////////////////////////////////////////////////
+        self.setup_automation_buttons()
 
-        # EXTRA RIGHT BOX
-        def openCloseRightBox():
-            UIFunctions.toggleRightBox(self, True)
-        widgets.settingsTopBtn.clicked.connect(openCloseRightBox)
+        # HIDE LEFT BOX AND SETTINGS BUTTON
+        widgets.toggleLeftBox.hide()
+        widgets.settingsTopBtn.hide()
 
         # SHOW APP
         # ///////////////////////////////////////////////////////////////
@@ -90,7 +89,7 @@ class MainWindow(QMainWindow):
         # SET CUSTOM THEME
         # ///////////////////////////////////////////////////////////////
         useCustomTheme = False
-        themeFile = "themes\py_dracula_light.qss"
+        themeFile = "themes/py_dracula_light.qss"
 
         # SET THEME AND HACKS
         if useCustomTheme:
@@ -100,10 +99,153 @@ class MainWindow(QMainWindow):
             # SET HACKS
             AppFunctions.setThemeHack(self)
 
-        # SET HOME PAGE AND SELECT MENU
+        # SET DEFAULT PAGE - Show first automation if available
         # ///////////////////////////////////////////////////////////////
-        widgets.stackedWidget.setCurrentWidget(widgets.home)
-        widgets.btn_home.setStyleSheet(UIFunctions.selectMenu(widgets.btn_home.styleSheet()))
+        automations = self.automation_manager.get_automations()
+        if automations and len(automations) > 0:
+            # Show first automation by default
+            self.show_automation_details(automations[0]['id'])
+            widgets.btn_widgets.setStyleSheet(UIFunctions.selectMenu(widgets.btn_widgets.styleSheet()))
+        else:
+            # Fallback to widgets page
+            widgets.stackedWidget.setCurrentWidget(widgets.widgets)
+
+    def setup_automation_widgets(self):
+        """
+        Configura los widgets personalizados para automatizaciones
+        """
+        try:
+            # Crear el widget de detalles de automatización
+            self.automation_details_widget = AutomationDetailsWidget()
+            self.automation_details_widget.executeRequested.connect(self.on_automation_execute_requested)
+            
+            # Reemplazar el contenido de la página de widgets
+            # Limpiar el layout existente de la página de widgets
+            widgets_page = widgets.widgets
+            if widgets_page.layout():
+                while widgets_page.layout().count():
+                    child = widgets_page.layout().takeAt(0)
+                    if child.widget():
+                        child.widget().hide()
+            else:
+                # Crear layout si no existe
+                from PySide6.QtWidgets import QVBoxLayout
+                layout = QVBoxLayout()
+                widgets_page.setLayout(layout)
+            
+            # Agregar el widget de automatización
+            widgets_page.layout().addWidget(self.automation_details_widget)
+            
+            print("✅ Widgets de automatización configurados")
+            
+        except Exception as e:
+            print(f"❌ Error configurando widgets de automatización: {str(e)}")
+
+    def setup_automation_buttons(self):
+        """
+        Configura dinámicamente los botones para las automatizaciones
+        """
+        try:
+            # Limpiar botones de automatización existentes
+            if hasattr(self, 'automation_buttons'):
+                for btn in self.automation_buttons:
+                    btn.deleteLater()
+            
+            self.automation_buttons = []
+            
+            # Crear botones para cada automatización
+            automations = self.automation_manager.get_automations()
+            
+            if not automations:
+                print("⚠️  No se encontraron automatizaciones")
+                return
+            
+            # Cambiar etiquetas de los botones existentes
+            if len(automations) > 0:
+                widgets.btn_widgets.setText(automations[0]['name'])
+                widgets.btn_widgets.automation_id = automations[0]['id']
+                
+            if len(automations) > 1:
+                widgets.btn_new.setText(automations[1]['name'])
+                widgets.btn_new.automation_id = automations[1]['id']
+                
+            if len(automations) > 2:
+                widgets.btn_save.setText(automations[2]['name'])
+                widgets.btn_save.automation_id = automations[2]['id']
+                
+            print(f"✅ Configurados botones para {len(automations)} automatizaciones")
+            
+        except Exception as e:
+            print(f"❌ Error configurando botones de automatización: {str(e)}")
+
+    def show_automation_details(self, automation_id):
+        """
+        Muestra los detalles de una automatización específica
+        """
+        automation = self.automation_manager.get_automation_by_id(automation_id)
+        if not automation:
+            return
+            
+        self.automation_manager.set_current_automation(automation_id)
+        
+        # Limpiar inputs anteriores
+        self.current_inputs = {}
+        
+        # Actualizar el widget de automatización
+        self.automation_details_widget.set_automation(automation)
+        
+        # Cambiar a la página de widgets
+        widgets.stackedWidget.setCurrentWidget(widgets.widgets)
+
+
+
+    def on_automation_execute_requested(self, inputs):
+        """
+        Maneja la solicitud de ejecución desde el widget de automatización
+        """
+        current = self.automation_manager.get_current_automation()
+        if not current:
+            print("⚠️  No hay automatización seleccionada")
+            return
+        
+        print(f"🚀 Ejecutando automatización: {current['name']}")
+        print(f"📊 Inputs: {inputs}")
+        
+        # Ejecutar la automatización
+        success, output = self.automation_manager.execute_automation(current['id'], inputs)
+        
+        # Actualizar la salida en el widget
+        if success:
+            result_text = f"✅ Automatización ejecutada exitosamente\n\n{output}"
+        else:
+            result_text = f"❌ Error ejecutando automatización\n\n{output}"
+        
+        self.automation_details_widget.set_output(result_text)
+
+    def open_file_dialog(self, input_config):
+        """
+        Abre el diálogo de selección de archivo/carpeta
+        """
+        input_type = input_config.get('type', 'file')
+        filters = input_config.get('filters', 'All Files (*)')
+        
+        if input_type == 'folder':
+            path = QFileDialog.getExistingDirectory(
+                self,
+                f"Seleccionar carpeta - {input_config['label']}",
+                ""
+            )
+        else:
+            path, _ = QFileDialog.getOpenFileName(
+                self,
+                f"Seleccionar archivo - {input_config['label']}",
+                "",
+                filters
+            )
+        
+        if path:
+            self.current_inputs[input_config['id']] = path
+            print(f"📁 Seleccionado: {path}")
 
 
     # BUTTONS CLICK
@@ -114,26 +256,24 @@ class MainWindow(QMainWindow):
         btn = self.sender()
         btnName = btn.objectName()
 
-        # SHOW HOME PAGE
-        if btnName == "btn_home":
-            widgets.stackedWidget.setCurrentWidget(widgets.home)
-            UIFunctions.resetStyle(self, btnName)
-            btn.setStyleSheet(UIFunctions.selectMenu(btn.styleSheet()))
-
-        # SHOW WIDGETS PAGE
-        if btnName == "btn_widgets":
-            widgets.stackedWidget.setCurrentWidget(widgets.widgets)
-            UIFunctions.resetStyle(self, btnName)
-            btn.setStyleSheet(UIFunctions.selectMenu(btn.styleSheet()))
-
-        # SHOW NEW PAGE
-        if btnName == "btn_new":
-            widgets.stackedWidget.setCurrentWidget(widgets.new_page) # SET PAGE
-            UIFunctions.resetStyle(self, btnName) # RESET ANOTHERS BUTTONS SELECTED
-            btn.setStyleSheet(UIFunctions.selectMenu(btn.styleSheet())) # SELECT MENU
-
-        if btnName == "btn_save":
-            print("Save BTN clicked!")
+        # SHOW AUTOMATION PAGES
+        if btnName in ["btn_widgets", "btn_new", "btn_save"]:
+            # Check if button has automation_id attribute
+            if hasattr(btn, 'automation_id'):
+                self.show_automation_details(btn.automation_id)
+                UIFunctions.resetStyle(self, btnName)
+                btn.setStyleSheet(UIFunctions.selectMenu(btn.styleSheet()))
+            else:
+                # Fallback to original behavior
+                if btnName == "btn_widgets":
+                    widgets.stackedWidget.setCurrentWidget(widgets.widgets)
+                elif btnName == "btn_new":
+                    widgets.stackedWidget.setCurrentWidget(widgets.new_page)
+                elif btnName == "btn_save":
+                    print("Save BTN clicked!")
+                    
+                UIFunctions.resetStyle(self, btnName)
+                btn.setStyleSheet(UIFunctions.selectMenu(btn.styleSheet()))
 
         # PRINT BTN NAME
         print(f'Button "{btnName}" pressed!')
