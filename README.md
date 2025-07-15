@@ -1,17 +1,37 @@
-# PyDracula - Modern GUI PySide6 / PyQt6
-# 
+# AuroreUI - Python Automation Runner
 
-> ## :gift: **//// DONATE ////**
-> ## 🔗 Donate (Gumroad): https://gum.co/mHsRC
-> This interface is free for any use, but if you are going to use it commercially, consider helping to maintain this project and others with a donation by Gumroado at the link above. This helps to keep this and other projects active.
+> **Modern GUI for executing Python automations with dynamic input configuration and real-time output monitoring.**
 
-> **Warning**: this project was created using PySide6 and Python 3.9, using previous versions can cause compatibility problems.
+> **Warning**: This project requires PySide6 and Python 3.9+, using previous versions can cause compatibility problems.
+
+## 🚀 Quick Start
+
+```bash
+# Install dependencies
+pip install PySide6
+
+# Run the application
+python3 main.py
+```
+
+**For detailed documentation, see:**
+- 📖 [Full Documentation](DOCUMENTATION.md)
+- ⚡ [Quick Start Guide](QUICK_START.md)
 
 # YouTube - Presentation And Tutorial
 Presentation and tutorial video with the main functions of the user interface.
 > 🔗 https://youtu.be/9DnaHg4M_AM
 
-# Multiple Themes
+## 🎯 Key Features
+
+- **Dynamic Automation Detection**: Automatically discovers and loads Python automation scripts
+- **Modern UI**: Clean, responsive interface with Dracula theme support
+- **Input Validation**: Configurable input fields with file/folder selection
+- **Real-time Execution**: Live output monitoring with error handling
+- **Cross-platform**: Works on Windows, macOS, and Linux
+- **Extensible**: Easy to add new automations via JSON configuration
+
+## 🎨 Multiple Themes
 ![PyDracula_Default_Dark](https://user-images.githubusercontent.com/60605512/112993874-0b647700-9140-11eb-8670-61322d70dbe3.png)
 ![PyDracula_Light](https://user-images.githubusercontent.com/60605512/112993918-18816600-9140-11eb-837c-e7a7c3d2b05e.png)
 
@@ -26,52 +46,78 @@ from widgets import *
 os.environ["QT_FONT_DPI"] = "96"
 ```
 
-# Running
-> Inside your preferred terminal run the commands below depending on your system, remembering before installing Python 3.9> and PySide6 "pip install PySide6".
-> ## **Windows**:
-```console
+## 🚀 Running
+
+### Prerequisites
+- Python 3.9 or higher
+- PySide6
+
+### Installation & Execution
+```bash
+# Install dependencies
+pip install PySide6
+
+# Run on Windows
 python main.py
-```
-> ## **MacOS and Linux**:
-```console
+
+# Run on macOS/Linux
 python3 main.py
 ```
-# Compiling
-> ## **Windows**:
-```console
+
+## 📦 Compiling
+
+### Windows Distribution
+```bash
 python setup.py build
 ```
 
-# Project Files And Folders
-> **main.py**: application initialization file.
+### Using PyInstaller (All Platforms)
+```bash
+pip install pyinstaller
+pyinstaller --onefile --windowed --icon=icon.ico main.py
+```
 
-> **main.ui**: Qt Designer project.
+## 📁 Project Structure
 
-> **resouces.qrc**: Qt Designer resoucers, add here your resources using Qt Designer. Use version 6 >
+### Core Files
+- **main.py**: Application entry point and main window
+- **main.ui**: Qt Designer UI definition
+- **setup.py**: Build configuration for distribution
+- **resources.qrc**: Qt resources (icons, images)
 
-> **setup.py**: cx-Freeze setup to compile your application (configured for Windows).
+### Key Directories
+- **modules/**: Core application modules
+  - `automation_manager.py`: Automation discovery and execution
+  - `automation_widgets.py`: Custom UI components
+  - `ui_functions.py`: UI interaction functions
+  - `app_settings.py`: Global configuration
+- **Automatizaciones/**: Automation scripts directory
+  - Each subfolder contains `ui_config.json` and `run.py`
+- **themes/**: QSS theme files (Dark/Light variants)
+- **widgets/**: Custom widget components
 
-> **themes/**: add here your themes (.qss).
+### Automation Structure
+Each automation requires:
+```
+Automatizaciones/my_automation/
+├── ui_config.json    # UI configuration
+└── run.py           # Automation script
+```
 
-> **modules/**: module for running PyDracula GUI.
+## 📚 Documentation
 
-> **modules/app_funtions.py**: add your application's functions here.
-Up
-> **modules/app_settings.py**: global variables to configure user interface.
+- 📖 **[Full Documentation](DOCUMENTATION.md)**: Complete guide with API reference
+- ⚡ **[Quick Start Guide](QUICK_START.md)**: Get running in 5 minutes
+- 🎯 **[Usage Examples](AUTOMATIZACION_UI_ADAPTACION.md)**: Detailed usage scenarios
 
-> **modules/resources_rc.py**: "resource.qrc" file compiled for python using the command: ```pyside6-rcc resources.qrc -o resources_rc.py```.
+## 🤝 Contributing
 
-> **modules/ui_functions.py**: add here only functions related to the user interface / GUI.
+We welcome contributions! Please see our contributing guidelines and feel free to submit issues or pull requests.
 
-> **modules/ui_main.py**: file related to the user interface exported by Qt Designer. You can compile it manually using the command: ```pyside6-uic main.ui> ui_main.py ```.
-After expoting in .py and change the line "import resources_rc" to "from. Resoucers_rc import *" to use as a module.
+## 📄 License
 
-> **images/**: put all your images and icons here before converting to Python (resources_re.py) ```pyside6-rcc resources.qrc -o resources_rc.py```.
+This project is based on the PyDracula theme and is licensed under the same terms. See `LICENSE` file for details.
 
-# Projects Created Using PyDracula
-**See the projects that were created using PyDracula.**
-> To participate create a "Issue" with the name beginning with "#pydracula_project", leaving the link of your project on Github, name of the creator and what is its functionality. Your project will be added and this list will be deleted from "Issue".
-**Malicious programs will not be added**!
+---
 
-
-
+*Built with ❤️ using PySide6 and the PyDracula theme*
