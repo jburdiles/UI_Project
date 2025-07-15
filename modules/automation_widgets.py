@@ -78,7 +78,7 @@ class AutomationInputWidget(QFrame):
         input_layout.addWidget(self.path_edit)
         
         # Botón para seleccionar archivo/carpeta
-        self.browse_btn = QPushButton("📁 Explorar")
+        self.browse_btn = QPushButton("Explorar")
         self.browse_btn.setStyleSheet("""
             QPushButton {
                 background-color: rgb(255, 121, 198);
@@ -246,7 +246,7 @@ class AutomationDetailsWidget(QWidget):
         buttons_layout = QHBoxLayout()
         
         # Botón de validar inputs
-        self.validate_btn = QPushButton("🔍 Validar Inputs")
+        self.validate_btn = QPushButton("Validar Inputs")
         self.validate_btn.setStyleSheet("""
             QPushButton {
                 background-color: rgb(80, 150, 255);
@@ -268,7 +268,7 @@ class AutomationDetailsWidget(QWidget):
         buttons_layout.addWidget(self.validate_btn)
         
         # Botón de ejecutar
-        self.execute_btn = QPushButton("🚀 Ejecutar Automatización")
+        self.execute_btn = QPushButton("Ejecutar Automatización")
         self.execute_btn.setStyleSheet("""
             QPushButton {
                 background-color: rgb(80, 250, 123);
@@ -301,7 +301,7 @@ class AutomationDetailsWidget(QWidget):
     
     def create_output_area(self):
         """Crea el área de salida para logs"""
-        output_label = QLabel("📋 Salida de la automatización:")
+        output_label = QLabel("Salida de la automatización:")
         output_label.setStyleSheet("""
             QLabel {
                 color: rgb(255, 255, 255);
@@ -350,7 +350,7 @@ class AutomationDetailsWidget(QWidget):
     def create_input_widgets(self, inputs_config):
         """Crea los widgets para los inputs de la automatización"""
         if inputs_config:
-            inputs_label = QLabel("📝 Configurar parámetros:")
+            inputs_label = QLabel("Configurar parámetros:")
             inputs_label.setStyleSheet("""
                 QLabel {
                     color: rgb(255, 255, 255);

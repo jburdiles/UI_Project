@@ -1,16 +1,7 @@
 # ///////////////////////////////////////////////////////////////
 #
-# BY: WANDERSON M.PIMENTA
-# PROJECT MADE WITH: Qt Designer and PySide6
-# V: 1.0.0
-#
-# This project can be used freely for all uses, as long as they maintain the
-# respective credits only in the Python scripts, any information in the visual
-# interface (GUI) can be modified without any implication.
-#
-# There are limitations on Qt licenses if you want to use your products
-# commercially, I recommend reading them on the official website:
-# https://doc.qt.io/qtforpython/licenses.html
+# AuroreUI - Python Automation Runner
+# Modern GUI for executing Python automations
 #
 # ///////////////////////////////////////////////////////////////
 
@@ -54,8 +45,8 @@ class MainWindow(QMainWindow):
 
         # APP NAME
         # ///////////////////////////////////////////////////////////////
-        title = "Python Automation Runner"
-        description = "Ejecutor de automatizaciones Python con interfaz moderna."
+        title = "AuroreUI"
+        description = ""
         # APPLY TEXTS
         self.setWindowTitle(title)
         widgets.titleRightInfo.setText(description)
@@ -75,26 +66,21 @@ class MainWindow(QMainWindow):
         # BUTTONS CLICK
         # ///////////////////////////////////////////////////////////////
 
-        # LEFT MENUS
-        widgets.btn_home.clicked.connect(self.buttonClick)
+        # LEFT MENUS  
         widgets.btn_widgets.clicked.connect(self.buttonClick)
         widgets.btn_new.clicked.connect(self.buttonClick)
         widgets.btn_save.clicked.connect(self.buttonClick)
+        
+        # HIDE HOME BUTTON
+        widgets.btn_home.hide()
 
         # SETUP AUTOMATION BUTTONS
         # ///////////////////////////////////////////////////////////////
         self.setup_automation_buttons()
 
-        # EXTRA LEFT BOX
-        def openCloseLeftBox():
-            UIFunctions.toggleLeftBox(self, True)
-        widgets.toggleLeftBox.clicked.connect(openCloseLeftBox)
-        widgets.extraCloseColumnBtn.clicked.connect(openCloseLeftBox)
-
-        # EXTRA RIGHT BOX
-        def openCloseRightBox():
-            UIFunctions.toggleRightBox(self, True)
-        widgets.settingsTopBtn.clicked.connect(openCloseRightBox)
+        # HIDE LEFT BOX AND SETTINGS BUTTON
+        widgets.toggleLeftBox.hide()
+        widgets.settingsTopBtn.hide()
 
         # SHOW APP
         # ///////////////////////////////////////////////////////////////
@@ -113,10 +99,16 @@ class MainWindow(QMainWindow):
             # SET HACKS
             AppFunctions.setThemeHack(self)
 
-        # SET HOME PAGE AND SELECT MENU
+        # SET DEFAULT PAGE - Show first automation if available
         # ///////////////////////////////////////////////////////////////
-        widgets.stackedWidget.setCurrentWidget(widgets.home)
-        widgets.btn_home.setStyleSheet(UIFunctions.selectMenu(widgets.btn_home.styleSheet()))
+        automations = self.automation_manager.get_automations()
+        if automations and len(automations) > 0:
+            # Show first automation by default
+            self.show_automation_details(automations[0]['id'])
+            widgets.btn_widgets.setStyleSheet(UIFunctions.selectMenu(widgets.btn_widgets.styleSheet()))
+        else:
+            # Fallback to widgets page
+            widgets.stackedWidget.setCurrentWidget(widgets.widgets)
 
     def setup_automation_widgets(self):
         """
@@ -170,15 +162,15 @@ class MainWindow(QMainWindow):
             
             # Cambiar etiquetas de los botones existentes
             if len(automations) > 0:
-                widgets.btn_widgets.setText("📁 " + automations[0]['name'])
+                widgets.btn_widgets.setText(automations[0]['name'])
                 widgets.btn_widgets.automation_id = automations[0]['id']
                 
             if len(automations) > 1:
-                widgets.btn_new.setText("📁 " + automations[1]['name'])
+                widgets.btn_new.setText(automations[1]['name'])
                 widgets.btn_new.automation_id = automations[1]['id']
                 
             if len(automations) > 2:
-                widgets.btn_save.setText("📁 " + automations[2]['name'])
+                widgets.btn_save.setText(automations[2]['name'])
                 widgets.btn_save.automation_id = automations[2]['id']
                 
             print(f"✅ Configurados botones para {len(automations)} automatizaciones")
@@ -264,14 +256,8 @@ class MainWindow(QMainWindow):
         btn = self.sender()
         btnName = btn.objectName()
 
-        # SHOW HOME PAGE
-        if btnName == "btn_home":
-            widgets.stackedWidget.setCurrentWidget(widgets.home)
-            UIFunctions.resetStyle(self, btnName)
-            btn.setStyleSheet(UIFunctions.selectMenu(btn.styleSheet()))
-
         # SHOW AUTOMATION PAGES
-        elif btnName in ["btn_widgets", "btn_new", "btn_save"]:
+        if btnName in ["btn_widgets", "btn_new", "btn_save"]:
             # Check if button has automation_id attribute
             if hasattr(btn, 'automation_id'):
                 self.show_automation_details(btn.automation_id)

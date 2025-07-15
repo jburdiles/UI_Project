@@ -1,8 +1,8 @@
-# Adaptación de UI PyDracula para Automatizaciones Python
+# AuroreUI - Ejecutor de Automatizaciones Python
 
 ## 🎯 **Objetivo Completado**
 
-Se ha adaptado exitosamente la interfaz PyDracula para convertirla en un **ejecutor de automatizaciones Python** con detección dinámica y interfaz moderna.
+Se ha creado exitosamente **AuroreUI**, un ejecutor de automatizaciones Python con detección dinámica e interfaz moderna y limpia.
 
 ## ✅ **Funcionalidades Implementadas**
 
@@ -184,4 +184,4 @@ python3 main.py
 - **Estilos**: CSS mantenidos del tema original
 
 ## ✨ **Resultado Final**
-La aplicación ahora funciona como un **ejecutor universal de automatizaciones Python** con una interfaz moderna y profesional, manteniendo toda la estética y funcionalidad del tema Dracula original, pero adaptada específicamente para ejecutar scripts Python de manera visual e intuitiva.
+**AuroreUI** es un ejecutor universal de automatizaciones Python con una interfaz moderna, limpia y profesional. La aplicación mantiene la estética del tema Dracula pero optimizada específicamente para ejecutar scripts Python de manera visual e intuitiva, sin elementos innecesarios.
