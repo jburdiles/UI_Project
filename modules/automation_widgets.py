@@ -429,7 +429,7 @@ class AutomationDetailsWidget(QWidget):
     
     def on_input_changed(self, input_id, path):
         """Maneja el cambio en un input"""
-        print(f"Input {input_id} cambiado a: {path}")
+        pass
     
     def validate_inputs(self):
         """Valida todos los inputs"""

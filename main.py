@@ -66,13 +66,11 @@ class MainWindow(QMainWindow):
         # BUTTONS CLICK
         # ///////////////////////////////////////////////////////////////
 
-        # LEFT MENUS  
-        widgets.btn_widgets.clicked.connect(self.buttonClick)
-        widgets.btn_new.clicked.connect(self.buttonClick)
-        widgets.btn_save.clicked.connect(self.buttonClick)
-        
-        # HIDE HOME BUTTON
+        # HIDE ORIGINAL BUTTONS - We'll create dynamic ones
         widgets.btn_home.hide()
+        widgets.btn_widgets.hide()
+        widgets.btn_new.hide()
+        widgets.btn_save.hide()
 
         # SETUP AUTOMATION BUTTONS
         # ///////////////////////////////////////////////////////////////
@@ -81,6 +79,13 @@ class MainWindow(QMainWindow):
         # HIDE LEFT BOX AND SETTINGS BUTTON
         widgets.toggleLeftBox.hide()
         widgets.settingsTopBtn.hide()
+
+        # KEYBOARD SHORTCUTS
+        # ///////////////////////////////////////////////////////////////
+        # F5 to reload automations
+        from PySide6.QtGui import QShortcut, QKeySequence
+        reload_shortcut = QShortcut(QKeySequence("F5"), self)
+        reload_shortcut.activated.connect(self.reload_automations)
 
         # SHOW APP
         # ///////////////////////////////////////////////////////////////
@@ -102,10 +107,24 @@ class MainWindow(QMainWindow):
         # SET DEFAULT PAGE - Show first automation if available
         # ///////////////////////////////////////////////////////////////
         automations = self.automation_manager.get_automations()
-        if automations and len(automations) > 0:
-            # Show first automation by default
+        if automations and len(automations) > 0 and hasattr(self, 'automation_buttons') and self.automation_buttons:
+            # Show first automation by default and select its button
             self.show_automation_details(automations[0]['id'])
-            widgets.btn_widgets.setStyleSheet(UIFunctions.selectMenu(widgets.btn_widgets.styleSheet()))
+            if self.automation_buttons:
+                first_btn = self.automation_buttons[0]
+                first_btn.setStyleSheet("""
+                    QPushButton {
+                        background-image: none;
+                        border-left: 22px solid qlineargradient(spread:pad, x1:0.034, y1:0, x2:0.216, y2:0, stop:0.499 rgba(255, 121, 198, 255), stop:0.5 rgba(85, 170, 255, 0));
+                        background-color: rgb(40, 44, 52);
+                        border: none;
+                        background-repeat: none;
+                        color: rgb(221, 221, 221);
+                        font: 12pt "Segoe UI";
+                        padding: 12px 20px;
+                        text-align: left;
+                    }
+                """)
         else:
             # Fallback to widgets page
             widgets.stackedWidget.setCurrentWidget(widgets.widgets)
@@ -137,7 +156,7 @@ class MainWindow(QMainWindow):
             # Agregar el widget de automatización
             widgets_page.layout().addWidget(self.automation_details_widget)
             
-            print("✅ Widgets de automatización configurados")
+
             
         except Exception as e:
             print(f"❌ Error configurando widgets de automatización: {str(e)}")
@@ -154,30 +173,148 @@ class MainWindow(QMainWindow):
             
             self.automation_buttons = []
             
-            # Crear botones para cada automatización
+            # Obtener automatizaciones disponibles
             automations = self.automation_manager.get_automations()
             
             if not automations:
-                print("⚠️  No se encontraron automatizaciones")
                 return
             
-            # Cambiar etiquetas de los botones existentes
-            if len(automations) > 0:
-                widgets.btn_widgets.setText(automations[0]['name'])
-                widgets.btn_widgets.automation_id = automations[0]['id']
+            # Obtener el contenedor del menú izquierdo
+            left_menu_frame = widgets.leftMenuFrame
+            
+            # Crear botones dinámicamente para cada automatización
+            for i, automation in enumerate(automations):
+                btn = QPushButton(automation['name'])
+                btn.setObjectName(f"btn_automation_{i}")
+                btn.automation_id = automation['id']
+                btn.setCheckable(True)
                 
-            if len(automations) > 1:
-                widgets.btn_new.setText(automations[1]['name'])
-                widgets.btn_new.automation_id = automations[1]['id']
+                # Aplicar el mismo estilo que los botones originales
+                btn.setStyleSheet("""
+                    QPushButton {
+                        background-image: none;
+                        background-color: transparent;
+                        border: none;
+                        border-left: 22px solid transparent;
+                        background-repeat: none;
+                        color: rgb(221, 221, 221);
+                        font: 12pt "Segoe UI";
+                        padding: 12px 20px;
+                        text-align: left;
+                    }
+                    QPushButton:hover {
+                        background-color: rgb(40, 44, 52);
+                    }
+                    QPushButton:pressed {
+                        background-color: rgb(189, 147, 249);
+                    }
+                """)
                 
-            if len(automations) > 2:
-                widgets.btn_save.setText(automations[2]['name'])
-                widgets.btn_save.automation_id = automations[2]['id']
+                # Conectar el evento click
+                btn.clicked.connect(self.automation_button_clicked)
                 
-            print(f"✅ Configurados botones para {len(automations)} automatizaciones")
+                # Agregar al layout del menú izquierdo
+                left_menu_layout = left_menu_frame.layout()
+                if left_menu_layout is None:
+                    # Si no hay layout, buscar en la estructura
+                    for child in left_menu_frame.findChildren(QWidget):
+                        if hasattr(child, 'layout') and child.layout():
+                            left_menu_layout = child.layout()
+                            break
+                
+                # Insertar el botón en la posición correcta
+                # Buscar dónde insertar (después del último botón visible)
+                insert_index = 0
+                if left_menu_layout:
+                    for j in range(left_menu_layout.count()):
+                        item = left_menu_layout.itemAt(j)
+                        if item and item.widget():
+                            widget = item.widget()
+                            if hasattr(widget, 'objectName') and 'btn_' in widget.objectName():
+                                insert_index = j + 1
+                    
+                    left_menu_layout.insertWidget(insert_index + i, btn)
+                
+                self.automation_buttons.append(btn)
             
         except Exception as e:
             print(f"❌ Error configurando botones de automatización: {str(e)}")
+    
+    def reload_automations(self):
+        """
+        Recarga las automatizaciones y actualiza la UI dinámicamente
+        """
+        # Recargar automatizaciones del manager
+        self.automation_manager.reload_automations()
+        
+        # Reconfigurar botones
+        self.setup_automation_buttons()
+        
+        # Si hay automatizaciones, mostrar la primera por defecto
+        automations = self.automation_manager.get_automations()
+        if automations and len(automations) > 0 and hasattr(self, 'automation_buttons') and self.automation_buttons:
+            self.show_automation_details(automations[0]['id'])
+            if self.automation_buttons:
+                first_btn = self.automation_buttons[0]
+                first_btn.setStyleSheet("""
+                    QPushButton {
+                        background-image: none;
+                        border-left: 22px solid qlineargradient(spread:pad, x1:0.034, y1:0, x2:0.216, y2:0, stop:0.499 rgba(255, 121, 198, 255), stop:0.5 rgba(85, 170, 255, 0));
+                        background-color: rgb(40, 44, 52);
+                        border: none;
+                        background-repeat: none;
+                        color: rgb(221, 221, 221);
+                        font: 12pt "Segoe UI";
+                        padding: 12px 20px;
+                        text-align: left;
+                    }
+                """)
+
+    def automation_button_clicked(self):
+        """
+        Maneja el click de los botones de automatización dinámicos
+        """
+        btn = self.sender()
+        if hasattr(btn, 'automation_id'):
+            # Resetear estilo de todos los botones de automatización
+            for auto_btn in self.automation_buttons:
+                auto_btn.setStyleSheet("""
+                    QPushButton {
+                        background-image: none;
+                        background-color: transparent;
+                        border: none;
+                        border-left: 22px solid transparent;
+                        background-repeat: none;
+                        color: rgb(221, 221, 221);
+                        font: 12pt "Segoe UI";
+                        padding: 12px 20px;
+                        text-align: left;
+                    }
+                    QPushButton:hover {
+                        background-color: rgb(40, 44, 52);
+                    }
+                    QPushButton:pressed {
+                        background-color: rgb(189, 147, 249);
+                    }
+                """)
+            
+            # Aplicar estilo seleccionado al botón actual
+            btn.setStyleSheet("""
+                QPushButton {
+                    background-image: none;
+                    border-left: 22px solid qlineargradient(spread:pad, x1:0.034, y1:0, x2:0.216, y2:0, stop:0.499 rgba(255, 121, 198, 255), stop:0.5 rgba(85, 170, 255, 0));
+                    background-color: rgb(40, 44, 52);
+                    border: none;
+                    background-repeat: none;
+                    color: rgb(221, 221, 221);
+                    font: 12pt "Segoe UI";
+                    padding: 12px 20px;
+                    text-align: left;
+                }
+            """)
+            
+            # Mostrar detalles de la automatización
+            self.show_automation_details(btn.automation_id)
 
     def show_automation_details(self, automation_id):
         """
@@ -209,8 +346,7 @@ class MainWindow(QMainWindow):
             print("⚠️  No hay automatización seleccionada")
             return
         
-        print(f"🚀 Ejecutando automatización: {current['name']}")
-        print(f"📊 Inputs: {inputs}")
+
         
         # Ejecutar la automatización
         success, output = self.automation_manager.execute_automation(current['id'], inputs)
@@ -232,8 +368,7 @@ class MainWindow(QMainWindow):
             print("⚠️  No hay automatización seleccionada")
             return
         
-        print(f"🚀 Ejecutando automatización en paralelo: {current['name']}")
-        print(f"📊 Inputs: {inputs}")
+
         
         # Callback para cuando termine la ejecución
         def on_execution_complete(success, output, execution_id):
@@ -285,7 +420,6 @@ class MainWindow(QMainWindow):
         
         if path:
             self.current_inputs[input_config['id']] = path
-            print(f"📁 Seleccionado: {path}")
 
 
     # BUTTONS CLICK
@@ -296,27 +430,10 @@ class MainWindow(QMainWindow):
         btn = self.sender()
         btnName = btn.objectName()
 
-        # SHOW AUTOMATION PAGES
-        if btnName in ["btn_widgets", "btn_new", "btn_save"]:
-            # Check if button has automation_id attribute
-            if hasattr(btn, 'automation_id'):
-                self.show_automation_details(btn.automation_id)
-                UIFunctions.resetStyle(self, btnName)
-                btn.setStyleSheet(UIFunctions.selectMenu(btn.styleSheet()))
-            else:
-                # Fallback to original behavior
-                if btnName == "btn_widgets":
-                    widgets.stackedWidget.setCurrentWidget(widgets.widgets)
-                elif btnName == "btn_new":
-                    widgets.stackedWidget.setCurrentWidget(widgets.new_page)
-                elif btnName == "btn_save":
-                    print("Save BTN clicked!")
-                    
-                UIFunctions.resetStyle(self, btnName)
-                btn.setStyleSheet(UIFunctions.selectMenu(btn.styleSheet()))
+        # Handle any remaining original buttons (if any)
+        # Most functionality is now handled by automation_button_clicked
 
-        # PRINT BTN NAME
-        print(f'Button "{btnName}" pressed!')
+
 
 
     # RESIZE EVENTS
@@ -331,11 +448,7 @@ class MainWindow(QMainWindow):
         # SET DRAG POS WINDOW
         self.dragPos = event.globalPos()
 
-        # PRINT MOUSE EVENTS
-        if event.buttons() == Qt.LeftButton:
-            print('Mouse click: LEFT CLICK')
-        if event.buttons() == Qt.RightButton:
-            print('Mouse click: RIGHT CLICK')
+
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

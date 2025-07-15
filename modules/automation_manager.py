@@ -64,12 +64,10 @@ class AutomationManager:
                         }
                         
                         self.automations.append(automation_info)
-                        print(f"✅ Automatización cargada: {automation_info['name']}")
                         
                     except Exception as e:
                         print(f"❌ Error cargando automatización en {item}: {str(e)}")
         
-        print(f"📋 Total de automatizaciones cargadas: {len(self.automations)}")
         return self.automations
     
     def get_automations(self) -> List[Dict]:
@@ -148,8 +146,6 @@ class AutomationManager:
                 else:
                     args.append("")  # Parámetro opcional vacío
             
-            print(f"🚀 Ejecutando: {' '.join(args)}")
-            
             # Ejecutar el script
             result = subprocess.run(
                 args,
@@ -164,11 +160,6 @@ class AutomationManager:
                 output += f"\n--- ERRORES ---\n{result.stderr}"
             
             success = result.returncode == 0
-            
-            if success:
-                print(f"✅ Automatización {automation_id} ejecutada exitosamente")
-            else:
-                print(f"❌ Error ejecutando automatización {automation_id}")
             
             return success, output
             
@@ -262,7 +253,6 @@ class AutomationManager:
         execution_info["thread"] = thread
         
         thread.start()
-        print(f"🚀 Ejecutando '{automation['name']}' en paralelo (ID: {execution_id})")
         
         return execution_id
     
@@ -285,7 +275,6 @@ class AutomationManager:
         if execution_id in self.running_executions:
             execution_info = self.running_executions[execution_id]
             execution_info["status"] = "cancelled"
-            print(f"⏹️ Solicitada cancelación de ejecución {execution_id}")
             return True
         return False
 
@@ -293,5 +282,4 @@ class AutomationManager:
         """
         Recarga las automatizaciones desde el disco
         """
-        print("🔄 Recargando automatizaciones...")
         self.load_automations()
