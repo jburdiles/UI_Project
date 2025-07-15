@@ -13,6 +13,7 @@ import platform
 # ///////////////////////////////////////////////////////////////
 from modules import *
 from widgets import *
+from PySide6.QtWidgets import QVBoxLayout, QWidget
 os.environ["QT_FONT_DPI"] = "96" # FIX Problem for High DPI and Scale above 100%
 
 # SET AS GLOBAL WIDGETS
@@ -79,6 +80,24 @@ class MainWindow(QMainWindow):
         # HIDE LEFT BOX AND SETTINGS BUTTON
         widgets.toggleLeftBox.hide()
         widgets.settingsTopBtn.hide()
+        
+        # HIDE EXIT BUTTON AND REORGANIZE TOP BUTTONS
+        widgets.btn_exit.hide()
+        
+        # REORGANIZE TOP BUTTONS - Hide first, then close (removing exit)
+        # Simply hide the exit button without reorganizing the entire layout
+        # This is safer and avoids layout conflicts
+        if hasattr(widgets, 'btn_exit'):
+            widgets.btn_exit.hide()
+        
+        # Ensure minimize button is visible and first (if it exists)
+        if hasattr(widgets, 'minimizeAppBtn'):
+            widgets.minimizeAppBtn.show()
+            # Move minimize to front by reparenting if needed
+            parent = widgets.minimizeAppBtn.parent()
+            if parent and parent.layout():
+                parent.layout().removeWidget(widgets.minimizeAppBtn)
+                parent.layout().insertWidget(0, widgets.minimizeAppBtn)
 
         # KEYBOARD SHORTCUTS
         # ///////////////////////////////////////////////////////////////
@@ -169,9 +188,12 @@ class MainWindow(QMainWindow):
             # Limpiar botones de automatización existentes
             if hasattr(self, 'automation_buttons'):
                 for btn in self.automation_buttons:
+                    btn.setParent(None)  # Remove from parent first
                     btn.deleteLater()
-            
-            self.automation_buttons = []
+                # Clear the list
+                self.automation_buttons.clear()
+            else:
+                self.automation_buttons = []
             
             # Obtener automatizaciones disponibles
             automations = self.automation_manager.get_automations()
@@ -213,27 +235,42 @@ class MainWindow(QMainWindow):
                 # Conectar el evento click
                 btn.clicked.connect(self.automation_button_clicked)
                 
-                # Agregar al layout del menú izquierdo
-                left_menu_layout = left_menu_frame.layout()
-                if left_menu_layout is None:
-                    # Si no hay layout, buscar en la estructura
-                    for child in left_menu_frame.findChildren(QWidget):
-                        if hasattr(child, 'layout') and child.layout():
-                            left_menu_layout = child.layout()
+                # Agregar al layout del menú izquierdo de forma más segura
+                # Buscar el layout correcto en la estructura del menú
+                menu_layout = None
+                
+                # Intentar encontrar el layout del menú navegando por la estructura
+                for child in widgets.leftMenuFrame.findChildren(QWidget):
+                    if child.layout() and child.layout().count() > 0:
+                        # Verificar si este layout contiene botones de menú
+                        has_menu_buttons = False
+                        for j in range(child.layout().count()):
+                            item = child.layout().itemAt(j)
+                            if item and item.widget():
+                                widget_name = item.widget().objectName()
+                                if 'btn_' in widget_name or 'Button' in widget_name:
+                                    has_menu_buttons = True
+                                    break
+                        if has_menu_buttons:
+                            menu_layout = child.layout()
                             break
                 
-                # Insertar el botón en la posición correcta
-                # Buscar dónde insertar (después del último botón visible)
-                insert_index = 0
-                if left_menu_layout:
-                    for j in range(left_menu_layout.count()):
-                        item = left_menu_layout.itemAt(j)
-                        if item and item.widget():
-                            widget = item.widget()
-                            if hasattr(widget, 'objectName') and 'btn_' in widget.objectName():
-                                insert_index = j + 1
+                # Si encontramos el layout, agregar el botón al final
+                if menu_layout:
+                    menu_layout.addWidget(btn)
+                else:
+                    # Fallback: agregar directamente al frame principal
+                    if not hasattr(widgets.leftMenuFrame, '_automation_container'):
+                        container = QWidget()
+                        layout = QVBoxLayout(container)
+                        layout.setContentsMargins(0, 0, 0, 0)
+                        layout.setSpacing(0)
+                        widgets.leftMenuFrame._automation_container = container
+                        # Agregar al final del layout principal si existe
+                        if widgets.leftMenuFrame.layout():
+                            widgets.leftMenuFrame.layout().addWidget(container)
                     
-                    left_menu_layout.insertWidget(insert_index + i, btn)
+                    widgets.leftMenuFrame._automation_container.layout().addWidget(btn)
                 
                 self.automation_buttons.append(btn)
             
@@ -446,7 +483,7 @@ class MainWindow(QMainWindow):
     # ///////////////////////////////////////////////////////////////
     def mousePressEvent(self, event):
         # SET DRAG POS WINDOW
-        self.dragPos = event.globalPos()
+        self.dragPos = event.globalPosition().toPoint()
 
 
 
@@ -454,4 +491,4 @@ if __name__ == "__main__":
     app = QApplication(sys.argv)
     app.setWindowIcon(QIcon("icon.ico"))
     window = MainWindow()
-    sys.exit(app.exec_())
+    sys.exit(app.exec())
