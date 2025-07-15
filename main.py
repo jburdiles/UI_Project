@@ -14,6 +14,7 @@ import platform
 from modules import *
 from widgets import *
 from PySide6.QtWidgets import QVBoxLayout, QWidget
+from PySide6.QtCore import Qt
 os.environ["QT_FONT_DPI"] = "96" # FIX Problem for High DPI and Scale above 100%
 
 # SET AS GLOBAL WIDGETS
@@ -201,15 +202,17 @@ class MainWindow(QMainWindow):
             if not automations:
                 return
             
-            # Obtener el contenedor del menú izquierdo
-            left_menu_frame = widgets.leftMenuFrame
-            
             # Crear botones dinámicamente para cada automatización
             for i, automation in enumerate(automations):
                 btn = QPushButton(automation['name'])
                 btn.setObjectName(f"btn_automation_{i}")
                 btn.automation_id = automation['id']
                 btn.setCheckable(True)
+                
+                # Configurar tamaño y políticas como los botones originales
+                btn.setMinimumSize(0, 45)
+                btn.setCursor(Qt.PointingHandCursor)
+                btn.setLayoutDirection(Qt.LeftToRight)
                 
                 # Aplicar el mismo estilo que los botones originales
                 btn.setStyleSheet("""
@@ -219,10 +222,12 @@ class MainWindow(QMainWindow):
                         border: none;
                         border-left: 22px solid transparent;
                         background-repeat: none;
+                        background-position: left center;
                         color: rgb(221, 221, 221);
                         font: 12pt "Segoe UI";
-                        padding: 12px 20px;
+                        padding-left: 75px;
                         text-align: left;
+                        min-height: 45px;
                     }
                     QPushButton:hover {
                         background-color: rgb(40, 44, 52);
@@ -235,42 +240,19 @@ class MainWindow(QMainWindow):
                 # Conectar el evento click
                 btn.clicked.connect(self.automation_button_clicked)
                 
-                # Agregar al layout del menú izquierdo de forma más segura
-                # Buscar el layout correcto en la estructura del menú
-                menu_layout = None
-                
-                # Intentar encontrar el layout del menú navegando por la estructura
-                for child in widgets.leftMenuFrame.findChildren(QWidget):
-                    if child.layout() and child.layout().count() > 0:
-                        # Verificar si este layout contiene botones de menú
-                        has_menu_buttons = False
-                        for j in range(child.layout().count()):
-                            item = child.layout().itemAt(j)
-                            if item and item.widget():
-                                widget_name = item.widget().objectName()
-                                if 'btn_' in widget_name or 'Button' in widget_name:
-                                    has_menu_buttons = True
-                                    break
-                        if has_menu_buttons:
-                            menu_layout = child.layout()
-                            break
-                
-                # Si encontramos el layout, agregar el botón al final
-                if menu_layout:
-                    menu_layout.addWidget(btn)
-                else:
-                    # Fallback: agregar directamente al frame principal
-                    if not hasattr(widgets.leftMenuFrame, '_automation_container'):
-                        container = QWidget()
-                        layout = QVBoxLayout(container)
+                # Agregar al layout correcto del menú (topMenu -> verticalLayout_8)
+                # Este es el mismo layout donde están los botones originales
+                if hasattr(widgets, 'topMenu'):
+                    topMenu = widgets.topMenu
+                    # Buscar el layout vertical del topMenu
+                    if topMenu.layout():
+                        topMenu.layout().addWidget(btn)
+                    else:
+                        # Si no hay layout, crear uno
+                        layout = QVBoxLayout(topMenu)
                         layout.setContentsMargins(0, 0, 0, 0)
                         layout.setSpacing(0)
-                        widgets.leftMenuFrame._automation_container = container
-                        # Agregar al final del layout principal si existe
-                        if widgets.leftMenuFrame.layout():
-                            widgets.leftMenuFrame.layout().addWidget(container)
-                    
-                    widgets.leftMenuFrame._automation_container.layout().addWidget(btn)
+                        layout.addWidget(btn)
                 
                 self.automation_buttons.append(btn)
             
