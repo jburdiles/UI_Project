@@ -1,0 +1,25 @@
+{
+    "name": "Backup de Archivos",
+    "description": "Automatización que realiza copias de seguridad de archivos y carpetas importantes, con compresión y timestamp.",
+    "inputs": [
+        {
+            "id": "source_folder",
+            "label": "Carpeta origen para backup",
+            "type": "folder",
+            "required": true
+        },
+        {
+            "id": "backup_folder",
+            "label": "Carpeta destino del backup",
+            "type": "folder",
+            "required": true
+        },
+        {
+            "id": "exclude_file",
+            "label": "Archivo con patrones a excluir",
+            "type": "file",
+            "required": false,
+            "filters": "Text Files (*.txt);;All Files (*)"
+        }
+    ]
+}

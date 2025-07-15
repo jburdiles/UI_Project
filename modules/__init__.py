@@ -28,3 +28,9 @@ from . ui_functions import *
 
 # APP FUNCTIONS
 from . app_functions import *
+
+# AUTOMATION MANAGER
+from . automation_manager import AutomationManager
+
+# AUTOMATION WIDGETS
+from . automation_widgets import AutomationDetailsWidget, AutomationInputWidget
