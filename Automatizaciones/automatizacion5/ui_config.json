@@ -1,0 +1,18 @@
+{
+    "name": "Conversor de Imágenes",
+    "description": "Convierte imágenes entre diferentes formatos (PNG, JPG, GIF, etc.) con opciones de redimensionamiento y optimización.",
+    "inputs": [
+        {
+            "id": "input_folder",
+            "label": "Carpeta con imágenes",
+            "type": "folder",
+            "required": true
+        },
+        {
+            "id": "output_folder",
+            "label": "Carpeta de salida",
+            "type": "folder",
+            "required": true
+        }
+    ]
+}

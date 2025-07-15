@@ -1,0 +1,12 @@
+{
+    "name": "Limpiador de Temporales",
+    "description": "Encuentra y elimina archivos temporales, cachés y archivos innecesarios para liberar espacio en disco.",
+    "inputs": [
+        {
+            "id": "target_folder",
+            "label": "Carpeta a limpiar",
+            "type": "folder",
+            "required": true
+        }
+    ]
+}

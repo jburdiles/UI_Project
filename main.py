@@ -13,7 +13,7 @@ import platform
 # ///////////////////////////////////////////////////////////////
 from modules import *
 from widgets import *
-from PySide6.QtWidgets import QVBoxLayout, QWidget
+from PySide6.QtWidgets import QVBoxLayout, QWidget, QScrollArea
 from PySide6.QtCore import Qt
 os.environ["QT_FONT_DPI"] = "96" # FIX Problem for High DPI and Scale above 100%
 
@@ -132,19 +132,7 @@ class MainWindow(QMainWindow):
             self.show_automation_details(automations[0]['id'])
             if self.automation_buttons:
                 first_btn = self.automation_buttons[0]
-                first_btn.setStyleSheet("""
-                    QPushButton {
-                        background-image: none;
-                        border-left: 22px solid qlineargradient(spread:pad, x1:0.034, y1:0, x2:0.216, y2:0, stop:0.499 rgba(255, 121, 198, 255), stop:0.5 rgba(85, 170, 255, 0));
-                        background-color: rgb(40, 44, 52);
-                        border: none;
-                        background-repeat: none;
-                        color: rgb(221, 221, 221);
-                        font: 12pt "Segoe UI";
-                        padding: 12px 20px;
-                        text-align: left;
-                    }
-                """)
+                first_btn.setChecked(True)
         else:
             # Fallback to widgets page
             widgets.stackedWidget.setCurrentWidget(widgets.widgets)
@@ -196,6 +184,12 @@ class MainWindow(QMainWindow):
             else:
                 self.automation_buttons = []
             
+            # Limpiar scroll area si existe
+            if hasattr(self, 'automation_scroll_area'):
+                self.automation_scroll_area.setParent(None)
+                self.automation_scroll_area.deleteLater()
+                delattr(self, 'automation_scroll_area')
+            
             # Obtener automatizaciones disponibles
             automations = self.automation_manager.get_automations()
             
@@ -214,7 +208,7 @@ class MainWindow(QMainWindow):
                 btn.setCursor(Qt.PointingHandCursor)
                 btn.setLayoutDirection(Qt.LeftToRight)
                 
-                # Aplicar el mismo estilo que los botones originales
+                # Aplicar el mismo estilo que los botones originales (SIN movimiento horizontal)
                 btn.setStyleSheet("""
                     QPushButton {
                         background-image: none;
@@ -228,36 +222,110 @@ class MainWindow(QMainWindow):
                         padding-left: 75px;
                         text-align: left;
                         min-height: 45px;
+                        margin: 0px;
+                        qproperty-flat: true;
                     }
                     QPushButton:hover {
                         background-color: rgb(40, 44, 52);
+                        border-left: 22px solid transparent;
                     }
                     QPushButton:pressed {
                         background-color: rgb(189, 147, 249);
+                        border-left: 22px solid transparent;
+                    }
+                    QPushButton:checked {
+                        background-color: rgb(40, 44, 52);
+                        border-left: 22px solid qlineargradient(spread:pad, x1:0.034, y1:0, x2:0.216, y2:0, stop:0.499 rgba(255, 121, 198, 255), stop:0.5 rgba(85, 170, 255, 0));
                     }
                 """)
                 
                 # Conectar el evento click
                 btn.clicked.connect(self.automation_button_clicked)
                 
-                # Agregar al layout correcto del menú (topMenu -> verticalLayout_8)
-                # Este es el mismo layout donde están los botones originales
-                if hasattr(widgets, 'topMenu'):
-                    topMenu = widgets.topMenu
-                    # Buscar el layout vertical del topMenu
-                    if topMenu.layout():
-                        topMenu.layout().addWidget(btn)
-                    else:
-                        # Si no hay layout, crear uno
-                        layout = QVBoxLayout(topMenu)
-                        layout.setContentsMargins(0, 0, 0, 0)
-                        layout.setSpacing(0)
-                        layout.addWidget(btn)
-                
                 self.automation_buttons.append(btn)
+            
+            # Crear área scrollable para los botones de automatización
+            self.setup_scrollable_automations()
             
         except Exception as e:
             print(f"❌ Error configurando botones de automatización: {str(e)}")
+
+    def setup_scrollable_automations(self):
+        """
+        Configura el área scrollable para los botones de automatización
+        """
+        try:
+            if not self.automation_buttons:
+                return
+            
+            # Crear área de scroll para los botones de automatización
+            if not hasattr(self, 'automation_scroll_area'):
+                self.automation_scroll_area = QScrollArea()
+                self.automation_scroll_area.setWidgetResizable(True)
+                self.automation_scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+                self.automation_scroll_area.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+                self.automation_scroll_area.setFrameStyle(0)  # Sin bordes
+                
+                # Estilo para el scroll area
+                self.automation_scroll_area.setStyleSheet("""
+                    QScrollArea {
+                        background-color: transparent;
+                        border: none;
+                    }
+                    QScrollBar:vertical {
+                        background-color: rgb(52, 59, 72);
+                        width: 8px;
+                        border-radius: 4px;
+                    }
+                    QScrollBar::handle:vertical {
+                        background-color: rgb(255, 121, 198);
+                        border-radius: 4px;
+                        min-height: 20px;
+                    }
+                    QScrollBar::handle:vertical:hover {
+                        background-color: rgb(255, 131, 208);
+                    }
+                    QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
+                        height: 0px;
+                    }
+                    QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {
+                        background: transparent;
+                    }
+                """)
+            
+            # Crear widget contenedor para los botones
+            automation_container = QWidget()
+            automation_container.setStyleSheet("QWidget { background-color: transparent; }")
+            
+            # Layout para el contenedor
+            container_layout = QVBoxLayout(automation_container)
+            container_layout.setContentsMargins(0, 0, 0, 0)
+            container_layout.setSpacing(0)
+            
+            # Agregar todos los botones al contenedor
+            for btn in self.automation_buttons:
+                container_layout.addWidget(btn)
+            
+            # Agregar spacer al final para empujar botones hacia arriba
+            container_layout.addStretch()
+            
+            # Configurar el widget en el scroll area
+            self.automation_scroll_area.setWidget(automation_container)
+            
+            # Agregar el scroll area al topMenu
+            if hasattr(widgets, 'topMenu'):
+                topMenu = widgets.topMenu
+                if topMenu.layout():
+                    topMenu.layout().addWidget(self.automation_scroll_area)
+                else:
+                    # Si no hay layout, crear uno
+                    layout = QVBoxLayout(topMenu)
+                    layout.setContentsMargins(0, 0, 0, 0)
+                    layout.setSpacing(0)
+                    layout.addWidget(self.automation_scroll_area)
+        
+        except Exception as e:
+            print(f"❌ Error configurando área scrollable: {str(e)}")
     
     def reload_automations(self):
         """
@@ -275,19 +343,7 @@ class MainWindow(QMainWindow):
             self.show_automation_details(automations[0]['id'])
             if self.automation_buttons:
                 first_btn = self.automation_buttons[0]
-                first_btn.setStyleSheet("""
-                    QPushButton {
-                        background-image: none;
-                        border-left: 22px solid qlineargradient(spread:pad, x1:0.034, y1:0, x2:0.216, y2:0, stop:0.499 rgba(255, 121, 198, 255), stop:0.5 rgba(85, 170, 255, 0));
-                        background-color: rgb(40, 44, 52);
-                        border: none;
-                        background-repeat: none;
-                        color: rgb(221, 221, 221);
-                        font: 12pt "Segoe UI";
-                        padding: 12px 20px;
-                        text-align: left;
-                    }
-                """)
+                first_btn.setChecked(True)
 
     def automation_button_clicked(self):
         """
@@ -295,42 +351,12 @@ class MainWindow(QMainWindow):
         """
         btn = self.sender()
         if hasattr(btn, 'automation_id'):
-            # Resetear estilo de todos los botones de automatización
+            # Desmarcar todos los botones de automatización
             for auto_btn in self.automation_buttons:
-                auto_btn.setStyleSheet("""
-                    QPushButton {
-                        background-image: none;
-                        background-color: transparent;
-                        border: none;
-                        border-left: 22px solid transparent;
-                        background-repeat: none;
-                        color: rgb(221, 221, 221);
-                        font: 12pt "Segoe UI";
-                        padding: 12px 20px;
-                        text-align: left;
-                    }
-                    QPushButton:hover {
-                        background-color: rgb(40, 44, 52);
-                    }
-                    QPushButton:pressed {
-                        background-color: rgb(189, 147, 249);
-                    }
-                """)
+                auto_btn.setChecked(False)
             
-            # Aplicar estilo seleccionado al botón actual
-            btn.setStyleSheet("""
-                QPushButton {
-                    background-image: none;
-                    border-left: 22px solid qlineargradient(spread:pad, x1:0.034, y1:0, x2:0.216, y2:0, stop:0.499 rgba(255, 121, 198, 255), stop:0.5 rgba(85, 170, 255, 0));
-                    background-color: rgb(40, 44, 52);
-                    border: none;
-                    background-repeat: none;
-                    color: rgb(221, 221, 221);
-                    font: 12pt "Segoe UI";
-                    padding: 12px 20px;
-                    text-align: left;
-                }
-            """)
+            # Marcar el botón actual como seleccionado
+            btn.setChecked(True)
             
             # Mostrar detalles de la automatización
             self.show_automation_details(btn.automation_id)
