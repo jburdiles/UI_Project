@@ -1,16 +1,16 @@
 {
-    "name": "Organizador de Archivos",
-    "description": "Automatización que organiza archivos por tipo en carpetas específicas, ideal para limpiar descargas o directorios desordenados.",
+    "name": "File Organizer",
+    "description": "Automation that organizes files by type into specific folders, ideal for cleaning downloads or messy directories.",
     "inputs": [
         {
             "id": "source_folder",
-            "label": "Carpeta a organizar",
+            "label": "Folder to organize",
             "type": "folder",
             "required": true
         },
         {
             "id": "destination_folder",
-            "label": "Carpeta destino organizada",
+            "label": "Organized destination folder",
             "type": "folder",
             "required": true
         }

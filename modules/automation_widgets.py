@@ -443,14 +443,14 @@ class AutomationDetailsWidget(QWidget):
                 errors.append(f"- {input_widget.input_config['label']}")
         
         if errors:
-            error_msg = "Los siguientes campos son requeridos:\n\n" + "\n".join(errors)
-            QMessageBox.warning(self, "Inputs inválidos", error_msg)
-            self.output_text.setPlainText("❌ Validación fallida: Hay inputs requeridos sin completar")
+            error_msg = "The following fields are required:\n\n" + "\n".join(errors)
+            QMessageBox.warning(self, "Invalid Inputs", error_msg)
+            self.output_text.setPlainText("Validation failed: There are required inputs not completed")
         else:
-            self.output_text.setPlainText("✅ Todos los inputs son válidos")
+            self.output_text.setPlainText("All inputs are valid")
     
     def execute_automation(self):
-        """Ejecuta la automatización"""
+        """Execute automation"""
         if not self.current_automation:
             return
         
@@ -476,7 +476,7 @@ class AutomationDetailsWidget(QWidget):
         self.executeRequested.emit(inputs)
     
     def execute_automation_async(self):
-        """Ejecuta la automatización en paralelo"""
+        """Execute automation in parallel"""
         if not self.current_automation:
             return
         

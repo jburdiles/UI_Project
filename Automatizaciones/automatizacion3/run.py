@@ -21,13 +21,13 @@ def main(source_folder, backup_folder, exclude_file=None):
         exclude_file (str, optional): Archivo con patrones a excluir
     """
     try:
-        print(f"💾 Iniciando backup de archivos...")
-        print(f"📂 Carpeta origen: {source_folder}")
-        print(f"📁 Carpeta destino: {backup_folder}")
+            print(f"Starting file backup...")
+    print(f"Source folder: {source_folder}")
+    print(f"Destination folder: {backup_folder}")
         
         # Verificar que la carpeta origen existe
         if not os.path.exists(source_folder):
-            raise FileNotFoundError(f"La carpeta origen {source_folder} no existe")
+            raise FileNotFoundError(f"Source folder {source_folder} does not exist")
             
         # Crear carpeta de backup si no existe
         os.makedirs(backup_folder, exist_ok=True)
@@ -49,7 +49,7 @@ def main(source_folder, backup_folder, exclude_file=None):
         for root, dirs, files in os.walk(source_folder):
             total_files += len(files)
         
-        print(f"📊 Archivos a procesar: {total_files}")
+        print(f"Files to process: {total_files}")
         
         # Crear archivo ZIP
         with zipfile.ZipFile(backup_zip, 'w', zipfile.ZIP_DEFLATED) as zipf:
@@ -68,9 +68,9 @@ def main(source_folder, backup_folder, exclude_file=None):
                         zipf.write(file_path, arc_name)
                         processed += 1
                         if processed % 100 == 0:
-                            print(f"📦 Procesados: {processed}/{total_files} archivos")
+                            print(f"Processed: {processed}/{total_files} files")
                     except Exception as e:
-                        print(f"⚠️  Error procesando {file_path}: {str(e)}")
+                        print(f"Warning: Error processing {file_path}: {str(e)}")
         
         # Generar información del backup
         backup_info = {
@@ -88,16 +88,16 @@ def main(source_folder, backup_folder, exclude_file=None):
         with open(info_file, 'w', encoding='utf-8') as f:
             json.dump(backup_info, f, indent=2, ensure_ascii=False)
         
-        print(f"✅ Backup completado exitosamente")
-        print(f"📦 Archivo de backup: {backup_zip}")
-        print(f"📄 Información: {info_file}")
-        print(f"📊 Archivos procesados: {processed}")
-        print(f"💾 Tamaño del backup: {backup_info['backup_size_mb']} MB")
+        print(f"Backup completed successfully")
+        print(f"Backup file: {backup_zip}")
+        print(f"Information: {info_file}")
+        print(f"Files processed: {processed}")
+        print(f"Backup size: {backup_info['backup_size_mb']} MB")
         
         return True
         
     except Exception as e:
-        print(f"❌ Error durante el backup: {str(e)}")
+        print(f"Error during backup: {str(e)}")
         return False
 
 if __name__ == "__main__":

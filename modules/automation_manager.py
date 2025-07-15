@@ -36,7 +36,7 @@ class AutomationManager:
         self.automations = []
         
         if not os.path.exists(self.automations_folder):
-            print(f"⚠️  Carpeta de automatizaciones no encontrada: {self.automations_folder}")
+            print(f"Warning: Automations folder not found: {self.automations_folder}")
             return self.automations
         
         # Buscar subcarpetas que contengan ui_config.json y run.py
@@ -66,7 +66,7 @@ class AutomationManager:
                         self.automations.append(automation_info)
                         
                     except Exception as e:
-                        print(f"❌ Error cargando automatización en {item}: {str(e)}")
+                        print(f"Error loading automation in {item}: {str(e)}")
         
         return self.automations
     
@@ -164,9 +164,9 @@ class AutomationManager:
             return success, output
             
         except subprocess.TimeoutExpired:
-            return False, "⏰ Timeout: La automatización tardó más de 5 minutos en ejecutarse"
+            return False, "Timeout: Automation took more than 5 minutes to execute"
         except Exception as e:
-            return False, f"❌ Error inesperado: {str(e)}"
+            return False, f"Unexpected error: {str(e)}"
     
     def validate_input_path(self, input_config: Dict, path: str) -> tuple:
         """
@@ -185,7 +185,7 @@ class AutomationManager:
             return True, ""
         
         if not os.path.exists(path):
-            return False, f"La ruta no existe: {path}"
+            return False, f"Path does not exist: {path}"
         
         input_type = input_config.get("type", "file")
         

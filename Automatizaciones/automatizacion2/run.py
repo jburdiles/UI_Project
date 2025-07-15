@@ -20,13 +20,13 @@ def main(data_folder, output_folder, template_file=None):
         template_file (str, optional): Ruta de la plantilla de reporte
     """
     try:
-        print(f"📊 Iniciando generación de reportes...")
-        print(f"📂 Carpeta de datos: {data_folder}")
-        print(f"📁 Carpeta de salida: {output_folder}")
+            print(f"Starting report generation...")
+    print(f"Data folder: {data_folder}")
+    print(f"Output folder: {output_folder}")
         
         # Verificar que la carpeta de datos existe
         if not os.path.exists(data_folder):
-            raise FileNotFoundError(f"La carpeta {data_folder} no existe")
+            raise FileNotFoundError(f"Folder {data_folder} does not exist")
             
         # Crear carpeta de salida si no existe
         os.makedirs(output_folder, exist_ok=True)
@@ -36,13 +36,13 @@ def main(data_folder, output_folder, template_file=None):
         for ext in ['*.csv', '*.xlsx', '*.json']:
             data_files.extend(Path(data_folder).glob(ext))
         
-        print(f"📄 Archivos encontrados: {len(data_files)}")
+        print(f"Files found: {len(data_files)}")
         for file in data_files:
             print(f"  - {file.name}")
         
         # Usar plantilla si se proporciona
         if template_file and os.path.exists(template_file):
-            print(f"📋 Usando plantilla: {template_file}")
+            print(f"Using template: {template_file}")
         
         # Generar reporte básico
         timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -73,14 +73,14 @@ def main(data_folder, output_folder, template_file=None):
                 f.write(f"  {i}. {file.name}\n")
             f.write("\n" + "=" * 50 + "\n")
         
-        print(f"✅ Reporte generado exitosamente")
-        print(f"📄 Reporte JSON: {json_report}")
-        print(f"📄 Reporte TXT: {txt_report}")
+        print(f"Report generated successfully")
+        print(f"JSON Report: {json_report}")
+        print(f"TXT Report: {txt_report}")
         
         return True
         
     except Exception as e:
-        print(f"❌ Error durante la generación: {str(e)}")
+        print(f"Error during generation: {str(e)}")
         return False
 
 if __name__ == "__main__":

@@ -13,11 +13,11 @@ def main(target_folder):
     Función principal de la automatización
     """
     try:
-        print(f"🧹 Iniciando limpieza de archivos temporales...")
-        print(f"📂 Carpeta objetivo: {target_folder}")
+        print(f"Starting temporary file cleanup...")
+        print(f"Target folder: {target_folder}")
         
         if not os.path.exists(target_folder):
-            raise FileNotFoundError(f"La carpeta {target_folder} no existe")
+            raise FileNotFoundError(f"Folder {target_folder} does not exist")
         
         # Patrones de archivos temporales (solo simulación)
         temp_patterns = ['.tmp', '.temp', '.cache', '.log', '~']
@@ -28,14 +28,14 @@ def main(target_folder):
                 if any(file.lower().endswith(pattern) or file.startswith(pattern) for pattern in temp_patterns):
                     found_files += 1
         
-        print(f"✅ Limpieza completada")
-        print(f"🗑️ Archivos temporales encontrados: {found_files}")
-        print(f"💾 Espacio que se puede liberar: {found_files * 1.2:.1f} MB (simulado)")
+        print(f"Cleanup completed")
+        print(f"Temporary files found: {found_files}")
+        print(f"Space that can be freed: {found_files * 1.2:.1f} MB (simulated)")
         
         return True
         
     except Exception as e:
-        print(f"❌ Error: {str(e)}")
+        print(f"Error: {str(e)}")
         return False
 
 if __name__ == "__main__":

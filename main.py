@@ -219,7 +219,7 @@ class MainWindow(QMainWindow):
                         background-position: left center;
                         color: rgb(221, 221, 221);
                         font: 12pt "Segoe UI";
-                        padding-left: 75px;
+                        padding-left: 25px;
                         text-align: left;
                         min-height: 45px;
                         margin: 0px;
@@ -384,11 +384,11 @@ class MainWindow(QMainWindow):
 
     def on_automation_execute_requested(self, inputs):
         """
-        Maneja la solicitud de ejecución desde el widget de automatización
+        Handles execution request from automation widget
         """
         current = self.automation_manager.get_current_automation()
         if not current:
-            print("⚠️  No hay automatización seleccionada")
+            print("No automation selected")
             return
         
 
@@ -398,43 +398,43 @@ class MainWindow(QMainWindow):
         
         # Actualizar la salida en el widget
         if success:
-            result_text = f"✅ Automatización ejecutada exitosamente\n\n{output}"
+            result_text = f"Automation executed successfully\n\n{output}"
         else:
-            result_text = f"❌ Error ejecutando automatización\n\n{output}"
+            result_text = f"Error executing automation\n\n{output}"
         
         self.automation_details_widget.set_output(result_text)
 
     def on_automation_execute_async_requested(self, inputs):
         """
-        Maneja la solicitud de ejecución asíncrona desde el widget de automatización
+        Handles asynchronous execution request from automation widget
         """
         current = self.automation_manager.get_current_automation()
         if not current:
-            print("⚠️  No hay automatización seleccionada")
+            print("No automation selected")
             return
         
 
         
-        # Callback para cuando termine la ejecución
+        # Callback for when execution completes
         def on_execution_complete(success, output, execution_id):
-            # Actualizar la salida en el widget
+            # Update output in widget
             if success:
-                result_text = f"✅ Ejecución {execution_id} completada exitosamente\n\n{output}"
+                result_text = f"Execution {execution_id} completed successfully\n\n{output}"
             else:
-                result_text = f"❌ Error en ejecución {execution_id}\n\n{output}"
+                result_text = f"Error in execution {execution_id}\n\n{output}"
             
-            self.automation_details_widget.append_output(f"\n--- Resultado {execution_id} ---")
+            self.automation_details_widget.append_output(f"\n--- Result {execution_id} ---")
             self.automation_details_widget.append_output(result_text)
             self.automation_details_widget.remove_execution(execution_id)
         
-        # Ejecutar la automatización en paralelo
+        # Execute automation in parallel
         execution_id = self.automation_manager.execute_automation_async(
             current['id'], 
             inputs, 
             callback=on_execution_complete
         )
         
-        # Agregar al tracking del widget
+        # Add to widget tracking
         execution_info = {
             'automation_name': current['name'],
             'execution_id': execution_id,
@@ -444,7 +444,7 @@ class MainWindow(QMainWindow):
 
     def open_file_dialog(self, input_config):
         """
-        Abre el diálogo de selección de archivo/carpeta
+        Opens file/folder selection dialog
         """
         input_type = input_config.get('type', 'file')
         filters = input_config.get('filters', 'All Files (*)')
@@ -452,13 +452,13 @@ class MainWindow(QMainWindow):
         if input_type == 'folder':
             path = QFileDialog.getExistingDirectory(
                 self,
-                f"Seleccionar carpeta - {input_config['label']}",
+                f"Select folder - {input_config['label']}",
                 ""
             )
         else:
             path, _ = QFileDialog.getOpenFileName(
                 self,
-                f"Seleccionar archivo - {input_config['label']}",
+                f"Select file - {input_config['label']}",
                 "",
                 filters
             )

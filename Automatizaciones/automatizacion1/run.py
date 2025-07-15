@@ -20,13 +20,13 @@ def main(input_csv, output_folder, config_file=None):
         config_file (str, optional): Ruta del archivo de configuración
     """
     try:
-        print(f"🚀 Iniciando procesamiento de CSV...")
-        print(f"📁 Archivo de entrada: {input_csv}")
-        print(f"📂 Carpeta de salida: {output_folder}")
+        print(f"Starting CSV processing...")
+            print(f"Input file: {input_csv}")
+    print(f"Output folder: {output_folder}")
         
         # Verificar que el archivo de entrada existe
         if not os.path.exists(input_csv):
-            raise FileNotFoundError(f"El archivo {input_csv} no existe")
+            raise FileNotFoundError(f"File {input_csv} does not exist")
             
         # Crear carpeta de salida si no existe
         os.makedirs(output_folder, exist_ok=True)
@@ -36,7 +36,7 @@ def main(input_csv, output_folder, config_file=None):
         if config_file and os.path.exists(config_file):
             with open(config_file, 'r', encoding='utf-8') as f:
                 config = json.load(f)
-                print(f"⚙️  Configuración cargada desde: {config_file}")
+                print(f"Configuration loaded from: {config_file}")
         
         # Procesar CSV
         data = []
@@ -48,8 +48,8 @@ def main(input_csv, output_folder, config_file=None):
             for row in reader:
                 data.append(row)
         
-        print(f"📊 Datos cargados: {len(data)} filas, {len(columns)} columnas")
-        print(f"📋 Columnas: {', '.join(columns)}")
+        print(f"Data loaded: {len(data)} rows, {len(columns)} columns")
+        print(f"Columns: {', '.join(columns)}")
         
         # Aplicar filtros básicos (ejemplo)
         filtered_data = data
@@ -60,9 +60,9 @@ def main(input_csv, output_folder, config_file=None):
             if filter_col in columns:
                 col_index = columns.index(filter_col)
                 filtered_data = [row for row in data if len(row) > col_index and row[col_index] == filter_val]
-                print(f"🔍 Filtros aplicados: {len(filtered_data)} filas restantes")
+                print(f"Filters applied: {len(filtered_data)} rows remaining")
             else:
-                print(f"⚠️ Columna de filtro '{filter_col}' no encontrada")
+                print(f"Warning: Filter column '{filter_col}' not found")
         
         # Generar reporte
         output_file = os.path.join(output_folder, "reporte_procesado.csv")
@@ -83,14 +83,14 @@ def main(input_csv, output_folder, config_file=None):
         with open(stats_file, 'w', encoding='utf-8') as f:
             json.dump(stats, f, indent=2, ensure_ascii=False)
         
-        print(f"✅ Procesamiento completado exitosamente")
-        print(f"📄 Archivo generado: {output_file}")
-        print(f"📈 Estadísticas: {stats_file}")
+        print(f"Processing completed successfully")
+        print(f"File generated: {output_file}")
+        print(f"Statistics: {stats_file}")
         
         return True
         
     except Exception as e:
-        print(f"❌ Error durante el procesamiento: {str(e)}")
+        print(f"Error during processing: {str(e)}")
         return False
 
 if __name__ == "__main__":

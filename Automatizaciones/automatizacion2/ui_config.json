@@ -1,23 +1,23 @@
 {
-    "name": "Generador de Reportes",
-    "description": "Automatización que genera reportes PDF y Excel a partir de datos de múltiples fuentes, incluyendo gráficos y estadísticas.",
+    "name": "Report Generator",
+    "description": "Automation that generates PDF and Excel reports from multiple data sources, including charts and statistics.",
     "inputs": [
         {
             "id": "data_folder",
-            "label": "Carpeta con datos de entrada",
+            "label": "Input data folder",
             "type": "folder",
             "required": true
         },
         {
             "id": "template_file",
-            "label": "Plantilla de reporte",
+            "label": "Report template",
             "type": "file",
             "required": false,
             "filters": "Template Files (*.html *.docx);;All Files (*)"
         },
         {
             "id": "output_folder",
-            "label": "Carpeta de salida",
+            "label": "Output folder",
             "type": "folder",
             "required": true
         }

@@ -13,12 +13,12 @@ def main(input_folder, output_folder):
     Función principal de la automatización
     """
     try:
-        print(f"🖼️ Iniciando conversión de imágenes...")
-        print(f"📂 Carpeta origen: {input_folder}")
-        print(f"📁 Carpeta destino: {output_folder}")
+        print(f"Starting image conversion...")
+        print(f"Source folder: {input_folder}")
+        print(f"Destination folder: {output_folder}")
         
         if not os.path.exists(input_folder):
-            raise FileNotFoundError(f"La carpeta {input_folder} no existe")
+            raise FileNotFoundError(f"Folder {input_folder} does not exist")
             
         os.makedirs(output_folder, exist_ok=True)
         
@@ -31,13 +31,13 @@ def main(input_folder, output_folder):
                 if any(file.lower().endswith(ext) for ext in image_extensions):
                     processed += 1
         
-        print(f"✅ Conversión completada")
-        print(f"📊 Imágenes procesadas: {processed}")
+        print(f"Conversion completed")
+        print(f"Images processed: {processed}")
         
         return True
         
     except Exception as e:
-        print(f"❌ Error: {str(e)}")
+        print(f"Error: {str(e)}")
         return False
 
 if __name__ == "__main__":

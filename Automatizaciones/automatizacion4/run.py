@@ -18,13 +18,13 @@ def main(source_folder, destination_folder):
         destination_folder (str): Ruta de la carpeta destino
     """
     try:
-        print(f"📁 Iniciando organización de archivos...")
-        print(f"📂 Carpeta origen: {source_folder}")
-        print(f"📁 Carpeta destino: {destination_folder}")
+            print(f"Starting file organization...")
+    print(f"Source folder: {source_folder}")
+    print(f"Destination folder: {destination_folder}")
         
         # Verificar que la carpeta origen existe
         if not os.path.exists(source_folder):
-            raise FileNotFoundError(f"La carpeta origen {source_folder} no existe")
+            raise FileNotFoundError(f"Source folder {source_folder} does not exist")
             
         # Crear carpeta destino si no existe
         os.makedirs(destination_folder, exist_ok=True)
@@ -49,7 +49,7 @@ def main(source_folder, destination_folder):
         for root, dirs, files in os.walk(source_folder):
             total_files += len(files)
         
-        print(f"📊 Total de archivos a procesar: {total_files}")
+        print(f"Total files to process: {total_files}")
         
         # Procesar archivos
         for root, dirs, files in os.walk(source_folder):
@@ -84,15 +84,15 @@ def main(source_folder, destination_folder):
                     organized_files += 1
                     
                     if organized_files % 10 == 0:
-                        print(f"📦 Organizados: {organized_files}/{total_files} archivos")
+                        print(f"Organized: {organized_files}/{total_files} files")
                         
                 except Exception as e:
-                    print(f"⚠️  Error moviendo {file}: {str(e)}")
+                    print(f"Warning: Error moving {file}: {str(e)}")
         
         # Generar resumen
-        print(f"✅ Organización completada exitosamente")
-        print(f"📊 Archivos organizados: {organized_files}")
-        print(f"📁 Carpetas creadas por categoría:")
+        print(f"Organization completed successfully")
+        print(f"Files organized: {organized_files}")
+        print(f"Folders created by category:")
         
         for category in file_categories.keys():
             category_path = os.path.join(destination_folder, category)
@@ -104,7 +104,7 @@ def main(source_folder, destination_folder):
         return True
         
     except Exception as e:
-        print(f"❌ Error durante la organización: {str(e)}")
+        print(f"Error during organization: {str(e)}")
         return False
 
 if __name__ == "__main__":

@@ -1,23 +1,23 @@
 {
-    "name": "Procesador de CSV",
-    "description": "Automatización que procesa archivos CSV, filtra datos según criterios específicos y genera un reporte consolidado.",
+    "name": "CSV Processor",
+    "description": "Automation that processes CSV files, filters data according to specific criteria and generates a consolidated report.",
     "inputs": [
         {
             "id": "input_csv",
-            "label": "Archivo CSV de entrada",
+            "label": "Input CSV file",
             "type": "file",
             "required": true,
             "filters": "CSV Files (*.csv);;All Files (*)"
         },
         {
             "id": "output_folder",
-            "label": "Carpeta de salida",
+            "label": "Output folder",
             "type": "folder",
             "required": true
         },
         {
             "id": "config_file",
-            "label": "Archivo de configuración (opcional)",
+            "label": "Configuration file (optional)",
             "type": "file",
             "required": false,
             "filters": "JSON Files (*.json);;All Files (*)"
